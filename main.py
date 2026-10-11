@@ -64,6 +64,10 @@ def visitors():
     return f"<pre>{content}</pre>"
 
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port, debug=False)
+@app.route("/visitors.txt", methods=["GET"])
+def visitors_txt():
+    from flask import send_file
+    try:
+        return send_file(LOG_FILE, mimetype="text/plain", as_attachment=True, download_name="visitors.txt")
+    except FileNotFoundError:
+        return "Пока никто не заходил.", 404
