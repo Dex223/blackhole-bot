@@ -1,11 +1,14 @@
 from flask import Flask, request, jsonify
 import requests
 import datetime
+import os
 
 app = Flask(__name__)
 
-BOT_TOKEN = "8881791195:AAHKLjXzt3Mvrq5Vg42kdbf_Z2YhRxMb5SU"
+BOT_TOKEN = "8881791195:AAH4BKtTiBvtbdH3vVqjFUAvF1vz9fU473g"
 MY_CHAT_ID = "1322035678"
+
+LOG_FILE = "/tmp/visitors.txt"
 
 
 def send_to_telegram(text):
@@ -33,8 +36,11 @@ def notify():
 
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    with open("/home/Dex23/mysite/visitors.txt", "a", encoding="utf-8") as f:
-        f.write(f"[{now}] IP={ip} | ПК={computer}\n")
+    try:
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(f"[{now}] IP={ip} | ПК={computer}\n")
+    except Exception as e:
+        print(f"[LOG ERROR] {type(e).__name__}: {e}")
 
     msg = (
         f"Black Hole запущен!\n"
@@ -49,8 +55,15 @@ def notify():
 @app.route("/visitors", methods=["GET"])
 def visitors():
     try:
-        with open("/home/Dex23/mysite/visitors.txt", "r", encoding="utf-8") as f:
+        with open(LOG_FILE, "r", encoding="utf-8") as f:
             content = f.read()
     except FileNotFoundError:
         content = "Пока никто не заходил."
+    except Exception as e:
+        content = f"Ошибка чтения лога: {type(e).__name__}: {e}"
     return f"<pre>{content}</pre>"
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port, debug=False)
